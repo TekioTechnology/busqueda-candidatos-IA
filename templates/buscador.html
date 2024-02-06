@@ -1,0 +1,29 @@
+<!-- templates/buscador.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador</title>
+</head>
+<body>
+    <h1>Buscador</h1>
+    <form action="{{ url_for('main_controller.buscar') }}" method="post">
+        <label for="palabra_clave">Palabra clave:</label>
+        <input type="text" name="palabra_clave" id="palabra_clave" required>
+        <br>
+        <input type="submit" value="Buscar">
+    </form>
+
+    {% if resultados %}
+        <h2>Resultados para "{{ palabra_clave }}"</h2>
+        <ul>
+            {% for resultado in resultados %}
+                <li><a href="{{ url_for('main_controller.descargar', nombre_archivo=resultado) }}">{{ resultado }}</a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No se encontraron resultados para "{{ palabra_clave }}".</p>
+    {% endif %}
+</body>
+</html>
