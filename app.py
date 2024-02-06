@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,render_template
 from controllers.main_controller import main_controller
 from flask_cors import CORS
 
@@ -8,7 +8,7 @@ app.register_blueprint(main_controller)
 
 @app.route('/')
 def index():
-    return '¡Hola, mundo!'
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(debug=True,port=9000)
