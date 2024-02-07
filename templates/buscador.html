@@ -21,12 +21,18 @@
         <h2>Resultados para "{{ palabra_clave }}"</h2>
         <table>
             <thead>
-        <ul>
-            {% for resultado in resultados %}
-                <li><a href="{{ url_for('main_controller.descargar', nombre_archivo=resultado) }}">{{ resultado }}</a></li>
-            {% endfor %}
-        </ul>
+        <tr>
+            <th>Resultado</th>
+            <th>Acciones</th>
+        </tr>
     </thead>
+            {% for resultado in resultados %}
+            <tr>
+                <td><a href="{{ url_for('main_controller.descargar', nombre_archivo=resultado) }}">{{ resultado }}</a></td>
+            </tr>
+            {% endfor %}
+        
+   
     </table>
     {% else %}
         <p>No se encontraron resultados para "{{ palabra_clave }}".</p>
