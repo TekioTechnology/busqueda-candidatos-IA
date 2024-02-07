@@ -1,0 +1,6 @@
+#paquetes o librerias instaladas en el proyecto 
+Flask
+Flask-CORS
+unidecode
+pymupdf
+
