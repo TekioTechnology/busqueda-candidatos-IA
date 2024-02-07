@@ -1,5 +1,5 @@
 # mi_app/controllers/main_controller.py
-from flask import Blueprint, render_template, request, current_app
+from flask import Blueprint, render_template, request, current_app,send_from_directory
 import os
 import secrets
 
@@ -66,3 +66,4 @@ def buscar():
 @main_controller.route('/descargar/<nombre_archivo>')
 def descargar(nombre_archivo):
     return send_from_directory(os.path.join(current_app.root_path, 'uploads'), nombre_archivo, as_attachment=True)
+
