@@ -1,7 +1,7 @@
 # mi_app/controllers/main_controller.py
 from flask import Blueprint, render_template, request, current_app,send_from_directory
 import os
-import secrets
+
 
 from unidecode import unidecode
 
@@ -15,11 +15,14 @@ def subir_cv():
         try:
             if 'cv' in request.files:
                 archivo_cv = request.files['cv']
-
-                # Genera un nombre único para el archivo
-                unique_name = secrets.token_hex(8)
-                extension = os.path.splitext(archivo_cv.filename)[1]
-                nombre_archivo = unique_name + extension
+                
+                # obtenemos el nombre original del archivo
+                nombre_archivo=archivo_cv.filename
+                
+                #verificamos si el archivo ya existe
+                ruta_archivo_existente=os.path.join(current_app.root_path,'uploads',nombre_archivo)
+                if os.path.exists(ruta_archivo_existente):
+                    return 'Este CV ya existe en tu base de datos.'
 
                 # Guarda el archivo en el directorio uploads
                 ruta_uploads = os.path.join(current_app.root_path, 'uploads')

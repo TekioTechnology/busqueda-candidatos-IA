@@ -2,7 +2,7 @@
 import os
 import fitz  # PyMuPDF
 from unidecode import unidecode
-
+import secrets
 
 def extraer_texto_pdf(ruta_pdf):
     texto = ""
@@ -22,3 +22,6 @@ def buscar_por_palabra_clave(ruta_pdf, palabra_clave):
    palabra_clave_normalizada=unidecode(palabra_clave).lower()
    
    return palabra_clave_normalizada in texto_normalizado
+
+
+    

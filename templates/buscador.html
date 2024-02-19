@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buscador</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
 </head>
 <body>
@@ -24,11 +25,19 @@
         <tr>
             <th>Resultado</th>
             <th>Acciones</th>
+
         </tr>
     </thead>
             {% for resultado in resultados %}
             <tr>
-                <td><a href="{{ url_for('main_controller.descargar', nombre_archivo=resultado) }}">{{ resultado }}</a></td>
+                <td>
+                    <a href="{{ url_for('main_controller.descargar', nombre_archivo=resultado) }}">{{ resultado }}</a>
+                    
+                </td>
+                <td>
+                    <button id="boton-{{ loop.index }}" class="boton-visualizar">Visualizar</button>
+
+                </td>
             </tr>
             {% endfor %}
         
@@ -37,5 +46,7 @@
     {% else %}
         <p>No se encontraron resultados para "{{ palabra_clave }}".</p>
     {% endif %}
+
+
 </body>
 </html>
