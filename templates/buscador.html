@@ -32,10 +32,10 @@
             <tr>
                 <td>
                     <a href="{{ url_for('main_controller.descargar', nombre_archivo=resultado) }}">{{ resultado }}</a>
-                    
-                </td>
-                <td>
-                    <button id="boton-{{ loop.index }}" class="boton-visualizar">Visualizar</button>
+                    <td>
+                        <button onclick="visualizarPDF('{{ resultado }}')">Visualizar</button>
+
+                    </td>
 
                 </td>
             </tr>
@@ -46,6 +46,12 @@
     {% else %}
         <p>No se encontraron resultados para "{{ palabra_clave }}".</p>
     {% endif %}
+
+    <script>
+        function visualizarPDF(nombreArchivo) {
+            window.open("{{ url_for('main_controller.visualizar_pdf', nombre_archivo='') }}" + nombreArchivo, '_blank');
+        }
+    </script>
 
 
 </body>

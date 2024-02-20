@@ -70,3 +70,7 @@ def buscar():
 def descargar(nombre_archivo):
     return send_from_directory(os.path.join(current_app.root_path, 'uploads'), nombre_archivo, as_attachment=True)
 
+
+@main_controller.route('/visualizar_pdf/<nombre_archivo>')
+def visualizar_pdf(nombre_archivo):
+    return send_from_directory(os.path.join(current_app.root_path, 'uploads'), nombre_archivo, as_attachment=False)
