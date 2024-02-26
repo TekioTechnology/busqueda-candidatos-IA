@@ -11,7 +11,7 @@
 </head>
 <body>
     <h1>Buscador</h1>
-    <form action="{{ url_for('main_controller.buscar') }}" method="post">
+    <form id="buscarForm" action="{{ url_for('main_controller.buscar') }}" method="post" onsubmit="enviarPalabraClave(event)">
         <label for="palabra_clave">Palabra clave:</label>
         <input type="text" name="palabra_clave" id="palabra_clave" required>
         <br>

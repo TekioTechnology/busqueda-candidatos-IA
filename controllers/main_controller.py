@@ -5,7 +5,9 @@ import os
 
 from unidecode import unidecode
 
+
 from utils.cv_utils import extraer_texto_pdf, buscar_por_palabra_clave
+
 
 main_controller = Blueprint('main_controller', __name__)
 
@@ -74,3 +76,22 @@ def descargar(nombre_archivo):
 @main_controller.route('/visualizar_pdf/<nombre_archivo>')
 def visualizar_pdf(nombre_archivo):
     return send_from_directory(os.path.join(current_app.root_path, 'uploads'), nombre_archivo, as_attachment=False)
+
+
+@main_controller.route('/guardar_palabra_clave', methods=['POST'])
+def guardar_palabra_clave():
+    try:
+        data = request.get_json()
+        palabra_clave = data.get('palabra_clave', '')
+        
+        # Ruta completa al archivo JSON
+        ruta_json = os.path.join(os.getcwd(), 'MI_APP', 'add_text', 'add_text.json')
+
+        # Agrega lógica para guardar la palabra clave en tu archivo JSON
+        with open(ruta_json, 'a') as archivo:
+            archivo.write(f'"{palabra_clave}"\n')
+
+        mensaje = f'Palabra clave "{palabra_clave}" guardada con éxito en: {ruta_json}'
+        return jsonify({"message": mensaje})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

@@ -28,3 +28,30 @@ function realizarAccion(nombreArchivo) {
         });
     });
 }
+
+function enviarPalabraClave(event) {
+    event.preventDefault();
+
+    // Obtener la palabra clave del formulario
+    var palabraClave = document.getElementById('palabra_clave').value;
+
+    // Enviar la palabra clave al servidor
+    fetch('/guardar_palabra_clave', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ palabra_clave: palabraClave })
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Manejar la respuesta del servidor
+        console.log(data.message);
+        alert(data.message);  // Muestra un mensaje al usuario
+    })
+    .catch(error => {
+        // Manejar errores
+        console.error(error.message);
+        alert('Error al enviar la palabra clave');  // Muestra un mensaje de error al usuario
+    });
+}
