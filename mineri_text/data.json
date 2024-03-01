@@ -1,2 +1,7 @@
-{"palabra_clave": "marketing"}
-{"palabra_clave": "sistemas"}
+{
+  "words": [
+    "sistemas",
+    "marketing",
+    "psicologo"
+  ]
+}

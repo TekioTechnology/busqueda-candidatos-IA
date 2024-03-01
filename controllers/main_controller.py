@@ -68,23 +68,28 @@ def buscar():
                 
                 print(f'palabra clave buscada:{palabra_clave}')
                 print(f'Resultados encontrados: {resultados}')
+                
                 #guardamos la palabra clave en un archivo json
                 ruta_json =os.path.join(current_app.root_path,'mineri_text','data.json')
-                #verificamos si el archivo ya existe en el archivo json
-                palabras_existentes=set()
-                if os.path.exists(ruta_json):
-                    with open(ruta_json,'r') as archivo_json:
-                      for linea in archivo_json:
-                        entrada_json=json.loads(linea.strip())
-                        palabras_existentes.add(entrada_json['palabra_clave'].lower())
+                print(f'Ruta del archivo JSON: {ruta_json}')
 
-                if palabra_clave_normalizada not in palabras_existentes:
-                    #guardar la palabra clave solo si no existe en el archivo json
-                    with open(ruta_json,'a') as archivo_json:
-                        json.dump({'palabra_clave':palabra_clave},archivo_json)
-                        archivo_json.write('\n')#agregamos un salto de linea
+                #estructura del json inicial
+                estructura_json={"words":[]}
+                if os.path.exists(ruta_json):
+                    with open(ruta_json, 'r') as archivo_json:
+                        estructura_json = json.load(archivo_json)
+
+                # Palabra clave solo si no existe en el archivo json
+                if palabra_clave_normalizada not in estructura_json["words"]:
+                    estructura_json["words"].append(palabra_clave_normalizada)
+
+                    with open(ruta_json, 'w') as archivo_json:
+                        json.dump(estructura_json, archivo_json, indent=2)
+
+                    print(f'Palabra clave guardada: {palabra_clave_normalizada}')
 
     return render_template('buscador.html', palabra_clave=palabra_clave, resultados=resultados)
+    
 
 
 @main_controller.route('/descargar/<nombre_archivo>')
