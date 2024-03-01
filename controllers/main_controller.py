@@ -1,7 +1,7 @@
 # mi_app/controllers/main_controller.py
 from flask import Blueprint, render_template, request, current_app,send_from_directory
 import os
-
+import json
 
 from unidecode import unidecode
 
@@ -65,8 +65,27 @@ def buscar():
             ruta_pdf = os.path.join(current_app.root_path, 'uploads', nombre_archivo)
             if buscar_por_palabra_clave(ruta_pdf, palabra_clave_normalizada):
                 resultados.append(nombre_archivo)
+                
+                print(f'palabra clave buscada:{palabra_clave}')
+                print(f'Resultados encontrados: {resultados}')
+                #guardamos la palabra clave en un archivo json
+                ruta_json =os.path.join(current_app.root_path,'mineri_text','data.json')
+                #verificamos si el archivo ya existe en el archivo json
+                palabras_existentes=set()
+                if os.path.exists(ruta_json):
+                    with open(ruta_json,'r') as archivo_json:
+                      for linea in archivo_json:
+                        entrada_json=json.loads(linea.strip())
+                        palabras_existentes.add(entrada_json['palabra_clave'].lower())
+
+                if palabra_clave_normalizada not in palabras_existentes:
+                    #guardar la palabra clave solo si no existe en el archivo json
+                    with open(ruta_json,'a') as archivo_json:
+                        json.dump({'palabra_clave':palabra_clave},archivo_json)
+                        archivo_json.write('\n')#agregamos un salto de linea
 
     return render_template('buscador.html', palabra_clave=palabra_clave, resultados=resultados)
+
 
 @main_controller.route('/descargar/<nombre_archivo>')
 def descargar(nombre_archivo):
@@ -77,21 +96,3 @@ def descargar(nombre_archivo):
 def visualizar_pdf(nombre_archivo):
     return send_from_directory(os.path.join(current_app.root_path, 'uploads'), nombre_archivo, as_attachment=False)
 
-
-@main_controller.route('/guardar_palabra_clave', methods=['POST'])
-def guardar_palabra_clave():
-    try:
-        data = request.get_json()
-        palabra_clave = data.get('palabra_clave', '')
-        
-        # Ruta completa al archivo JSON
-        ruta_json = os.path.join(os.getcwd(), 'MI_APP', 'add_text', 'add_text.json')
-
-        # Agrega lógica para guardar la palabra clave en tu archivo JSON
-        with open(ruta_json, 'a') as archivo:
-            archivo.write(f'"{palabra_clave}"\n')
-
-        mensaje = f'Palabra clave "{palabra_clave}" guardada con éxito en: {ruta_json}'
-        return jsonify({"message": mensaje})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
