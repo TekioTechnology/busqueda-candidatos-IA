@@ -32,7 +32,8 @@
             {% for resultado in resultados %}
             <tr>
                 <td>
-                    <a href="{{ url_for('main_controller.descargar', nombre_archivo=resultado) }}">{{ resultado }}</a>
+                    <a href="{{ url_for('main_controller.descargar', nombre_archivo=resultado) }}" target="_blank">{{ resultado }}</a>
+
                     <td>
                         <button onclick="visualizarPDF('{{ resultado }}')">Visualizar</button>
 
@@ -49,7 +50,9 @@
     {% endif %}
 
     <script>
-        
+        function visualizarPDF(nombreArchivo) {
+            window.open("{{ url_for('main_controller.visualizar_pdf', nombre_archivo='') }}" + nombreArchivo, '_blank');
+        }
 
     </script>
 
