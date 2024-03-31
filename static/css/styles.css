@@ -1,6 +1,6 @@
 body{
     font-family: Arial, Helvetica, sans-serif;
-    background-color: #f2f2f2;
+    background-color: #635f5f;
 }
 .boton {
     display: inline-block;
@@ -10,7 +10,7 @@ body{
     text-decoration: none;
     cursor: pointer;
     border-radius: 5px;
-    color: #fff;
+    color: #fffafa;
 }
 
 .boton-subir {
