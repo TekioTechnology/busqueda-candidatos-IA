@@ -1,15 +1,49 @@
 # mi_app/controllers/main_controller.py
-from flask import Blueprint, render_template, request, current_app,send_from_directory
+from flask import Blueprint, render_template, request, current_app, send_from_directory
 import os
 import json
-
 from unidecode import unidecode
-
-
 from utils.cv_utils import extraer_texto_pdf, buscar_por_palabra_clave
 
-
 main_controller = Blueprint('main_controller', __name__)
+
+
+#----------CORREGIR ESTA PARTE DEL CODIGO PARA TENER UNA MEJOR ESTRUCTURA 
+# Importa las clases necesarias
+# from flask import Flask
+from pymongo import MongoClient
+
+# Crea la aplicación Flask
+app = Flask(__name__)
+
+# Configuración de la conexión a MongoDB
+MONGO_URI = "mongodb+srv://mimikaAckerman:comoqueso2134@atlascluster.lscuccj.mongodb.net/?retryWrites=true&w=majority&appName=AtlasCluster"
+
+# Conexión a la base de datos
+try:
+    client = MongoClient(MONGO_URI)
+    db = client.UB_cvs  # Cambia 'test' al nombre de tu base de datos
+    print("Connected to MongoDB successfully!")
+except Exception as e:
+    print(f"Error connecting to MongoDB: {e}")
+
+# Rutas y otras configuraciones de la aplicación Flask...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @main_controller.route('/subir_cv', methods=['GET', 'POST'])
 def subir_cv():
@@ -19,23 +53,26 @@ def subir_cv():
                 archivo_cv = request.files['cv']
                 
                 # obtenemos el nombre original del archivo
-                nombre_archivo=archivo_cv.filename
+                nombre_archivo = archivo_cv.filename
                 
-                #verificamos si el archivo ya existe
-                ruta_archivo_existente=os.path.join(current_app.root_path,'uploads',nombre_archivo)
-                if os.path.exists(ruta_archivo_existente):
+                # verificamos si el archivo ya existe
+                if client.UB_cvs.pdfs.find_one({"nombre_archivo": nombre_archivo}):
                     return 'Este CV ya existe en tu base de datos.'
 
-                # Guarda el archivo en el directorio uploads
-                ruta_uploads = os.path.join(current_app.root_path, 'uploads')
-                archivo_cv.save(os.path.join(ruta_uploads, nombre_archivo))
+                # convertimos el archivo a bytes
+                contenido_pdf = archivo_cv.read()
+                
+                # Guarda el archivo en la base de datos
+                client.UB_cvs.pdfs.insert_one({
+                    "nombre_archivo": nombre_archivo,
+                    "contenido": contenido_pdf
+                })
 
                 print(f'Se ha subido el CV: {nombre_archivo}')
 
                 # Realiza la búsqueda por palabras clave solo si es un archivo PDF
-                if extension.lower() == '.pdf':
-                    ruta_pdf = os.path.join(ruta_uploads, nombre_archivo)
-                    texto_pdf = extraer_texto_pdf(ruta_pdf)
+                if nombre_archivo.lower().endswith('.pdf'):
+                    texto_pdf = extraer_texto_pdf(contenido_pdf)
                     # Resto del código...
                     print(f'El CV es un archivo PDF: {nombre_archivo}')
                 else:
@@ -48,7 +85,6 @@ def subir_cv():
     # Si la solicitud es GET, renderiza el formulario
     return render_template('formulario.html')
 
-
 @main_controller.route('/buscar', methods=['GET'])
 def mostrar_buscador():
     return render_template('buscador.html')
@@ -60,42 +96,40 @@ def buscar():
 
     resultados = []
 
-    for nombre_archivo in os.listdir(os.path.join(current_app.root_path, 'uploads')):
-        if nombre_archivo.lower().endswith('.pdf'):
-            ruta_pdf = os.path.join(current_app.root_path, 'uploads', nombre_archivo)
-            if buscar_por_palabra_clave(ruta_pdf, palabra_clave_normalizada):
-                resultados.append(nombre_archivo)
+    for pdf in client.UB_cvs.pdfs.find():
+        contenido_pdf = pdf["contenido"]
+        nombre_archivo = pdf["nombre_archivo"]
+        
+        if buscar_por_palabra_clave(contenido_pdf, palabra_clave_normalizada):
+            resultados.append(nombre_archivo)
                 
-                print(f'palabra clave buscada:{palabra_clave}')
-                print(f'Resultados encontrados: {resultados}')
-                
-                #guardamos la palabra clave en un archivo json
-                ruta_json =os.path.join(current_app.root_path,'mineri_text','data.json')
-                print(f'Ruta del archivo JSON: {ruta_json}')
+            print(f'palabra clave buscada: {palabra_clave}')
+            print(f'Resultados encontrados: {resultados}')
 
-                #estructura del json inicial
-                estructura_json={"words":[]}
-                if os.path.exists(ruta_json):
-                    with open(ruta_json, 'r') as archivo_json:
-                        estructura_json = json.load(archivo_json)
+            # Guardamos la palabra clave en un archivo JSON
+            ruta_json = os.path.join(current_app.root_path, 'mineri_text', 'data.json')
+            print(f'Ruta del archivo JSON: {ruta_json}')
 
-                # Palabra clave solo si no existe en el archivo json
-                if palabra_clave_normalizada not in estructura_json["words"]:
-                    estructura_json["words"].append(palabra_clave_normalizada)
+            # Estructura del JSON inicial
+            estructura_json = {"words": []}
+            if os.path.exists(ruta_json):
+                with open(ruta_json, 'r') as archivo_json:
+                    estructura_json = json.load(archivo_json)
 
-                    with open(ruta_json, 'w') as archivo_json:
-                        json.dump(estructura_json, archivo_json, indent=2)
+            # Palabra clave solo si no existe en el archivo JSON
+            if palabra_clave_normalizada not in estructura_json["words"]:
+                estructura_json["words"].append(palabra_clave_normalizada)
 
-                    print(f'Palabra clave guardada: {palabra_clave_normalizada}')
+                with open(ruta_json, 'w') as archivo_json:
+                    json.dump(estructura_json, archivo_json, indent=2)
+
+                print(f'Palabra clave guardada: {palabra_clave_normalizada}')
 
     return render_template('buscador.html', palabra_clave=palabra_clave, resultados=resultados)
-    
-
 
 @main_controller.route('/descargar/<nombre_archivo>')
 def descargar(nombre_archivo):
     return send_from_directory(os.path.join(current_app.root_path, 'uploads'), nombre_archivo, as_attachment=True)
-
 
 @main_controller.route('/visualizar_pdf/<nombre_archivo>')
 def visualizar_pdf(nombre_archivo):

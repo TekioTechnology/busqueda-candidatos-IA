@@ -3,4 +3,5 @@ Flask
 Flask-CORS
 unidecode
 pymupdf
+nltk
 
