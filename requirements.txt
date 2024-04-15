@@ -3,4 +3,4 @@ Flask
 Flask-CORS
 unidecode
 pymupdf
-
+spacy

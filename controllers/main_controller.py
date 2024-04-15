@@ -2,9 +2,8 @@
 from flask import Blueprint, render_template, request, current_app,send_from_directory
 import os
 import json
-
+import spacy
 from unidecode import unidecode
-
 
 from utils.cv_utils import extraer_texto_pdf, buscar_por_palabra_clave
 

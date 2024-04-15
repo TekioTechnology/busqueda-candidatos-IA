@@ -11,3 +11,7 @@ source venv/bin/app.py
 source venv/bin/activate
 #luego vamos a la carpeta del proyecto y ejecutamos
 python app.py
+
+
+#instalacion del modelo en español de spaCy
+#python -m spacy download es_core_news_sm
