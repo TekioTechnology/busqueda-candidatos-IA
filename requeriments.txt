@@ -4,3 +4,4 @@ Flask-CORS
 unidecode
 pymupdf
 spacy
+pymongo

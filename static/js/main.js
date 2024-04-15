@@ -30,6 +30,3 @@ function realizarAccion(nombreArchivo) {
 }
 
 
-function visualizarPDF(nombreArchivo) {
-    window.open("{{ url_for('main_controller.visualizar_pdf', nombre_archivo='') }}" + nombreArchivo, '_blank');
-}
