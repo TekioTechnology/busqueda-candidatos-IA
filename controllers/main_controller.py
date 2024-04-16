@@ -5,11 +5,14 @@ import json
 import spacy
 from unidecode import unidecode
 from utils.cv_utils import extraer_texto_pdf, buscar_por_palabra_clave
-# from connection_bbdd import client
 
+#importamos la configuracion de la base de datos
+from connection_bbdd import establecer_conexion
 
 main_controller = Blueprint('main_controller', __name__)
 
+#comprobamos la funcion de la conexion con la base de datos
+client =establecer_conexion()
 
 
 
