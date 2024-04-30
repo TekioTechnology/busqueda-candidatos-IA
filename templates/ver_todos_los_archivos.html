@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Todos los CVs</title>
+</head>
+<body>
+    <h1>Archivos en la Base de Datos</h1>
+    <ul>
+        {% for archivo in datos_archivos %}
+            <li>
+                {{ archivo.nombre_archivo }}
+                <a href="{{ url_for('main_controller.descargar_archivo', nombre_archivo=archivo.nombre_archivo) }}">Descargar</a>
+                <a href="{{ url_for('main_controller.ver_archivo', nombre_archivo=archivo.nombre_archivo) }}">Ver PDF</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

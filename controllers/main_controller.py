@@ -12,18 +12,30 @@ def establecer_conexion():
 
 
 # mi_app/controllers/main_controller.py
-from flask import Blueprint, render_template, request, current_app, send_from_directory, Response
+from flask import Blueprint, render_template, request, current_app, send_from_directory, Response,jsonify,send_file
 import os
 import json
 import spacy
 from unidecode import unidecode
 from utils.cv_utils import extraer_texto_pdf, buscar_por_palabra_clave
 
+from io import BytesIO
+
 #importamos la configuracion de la base de datos
 # from connection_bbdd import establecer_conexion
 
 main_controller = Blueprint('main_controller', __name__)
 
+
+
+#funcion de buscar pdf
+@main_controller.route('/buscar', methods=['GET'])
+def mostrar_buscador():
+    return render_template('buscador.html')
+#no se encuentra la pagina
+@main_controller.app_errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
 
 #--------------controlador para subir los cvs a la bbdd
 @main_controller.route('/subir_cv', methods=['GET', 'POST'])
@@ -56,24 +68,89 @@ def subir_cv():
         return str(e), 500
 
     return render_template('formulario.html')
-    
-# import fitz
-# def extraer_texto_pdf(contenido_pdf):
-#     texto=""
-#     try:
-#         #abrimos el documento pdf
-#         documento=fitz.open(stream=contenido_pdf,filetype="pdf")
-#         #extrae el texto de cada pagina
-#         for pagina in documento:
-#             texto +=pagina.get_text()
-#     except Exception as e:
-#         print("error al extraer el texto pdf")
-#         return texto
 
-#funcion de buscar pdf
-@main_controller.route('/buscar', methods=['GET'])
-def mostrar_buscador():
-    return render_template('buscador.html')
+#funcion para verificar si el archivo esta en la base de datos
+def verificar_archivo(nombre_archivo):
+    try:
+        client = establecer_conexion()
+        if client.db.upload_cv.find_one({"nombre_archivo": nombre_archivo}):
+            return "El archivo existe en la base de datos."
+        else:
+            return "El archivo no existe en la base de datos."
+    except Exception as e:
+        return str(e)
+#aqui lo empleamos como ruta para visualizarlo por url 
+@main_controller.route('/verificar_archivo/<nombre_archivo>', methods=['GET'])
+def verificar_archivo_route(nombre_archivo):
+    mensaje = verificar_archivo(nombre_archivo)
+    return jsonify({"mensaje": mensaje})
+
+#funcion para visualizar todos los archivos de la base de datos
+@main_controller.route('/ver_todos_los_archivos', methods=['GET'])
+def ver_todos_los_archivos():
+    try:
+        client = establecer_conexion()
+        archivos = client.db.upload_cv.find({}, {"_id": 0, "nombre_archivo": 1, "contenido": 1})  # Obtener nombres de archivo y contenido
+        datos_archivos = [{"nombre_archivo": archivo["nombre_archivo"], "contenido": archivo["contenido"]} for archivo in archivos]
+        return render_template('ver_todos_los_archivos.html', datos_archivos=datos_archivos)
+    except Exception as e:
+        return str(e), 500
+
+
+
+  
+#---------------------------------------------------------------
+@main_controller.route('/descargar_archivo/<nombre_archivo>', methods=['GET'])
+def descargar_archivo(nombre_archivo):
+    try:
+        client = establecer_conexion()
+        archivo = client.db.upload_cv.find_one({"nombre_archivo": nombre_archivo})
+        if archivo:
+            contenido_pdf = archivo["contenido"]
+            return send_file(BytesIO(contenido_pdf), mimetype='application/pdf', as_attachment=True, attachment_filename=nombre_archivo)
+        else:
+            return "El archivo no fue encontrado en la base de datos."
+    except Exception as e:
+        return str(e), 500
+
+@main_controller.route('/ver_archivo/<nombre_archivo>', methods=['GET'])
+def ver_archivo(nombre_archivo):
+    try:
+        client = establecer_conexion()
+        archivo = client.db.upload_cv.find_one({"nombre_archivo": nombre_archivo})
+        if archivo:
+            contenido_pdf = archivo["contenido"]
+            return Response(contenido_pdf, mimetype='application/pdf')
+        else:
+            return "El archivo no fue encontrado en la base de datos."
+    except Exception as e:
+        return str(e), 500
+
+
+
+
+
+
+    
+# @main_controller.route('/visualizar_pdf/<nombre_archivo>')
+# def visualizar_pdf(nombre_archivo):
+#     client=establecer_conexion()
+#     pdf = client.ub_cv.upload_cv.find_one({"nombre_archivo": nombre_archivo})
+#     if pdf:
+#         contenido_pdf = pdf["contenido"]
+#         # Decodificar el contenido binario a bytes
+#         contenido_bytes = contenido_pdf.decode('utf-8')
+        
+#         # Crear un objeto BytesIO a partir de los bytes
+#         pdf_bytes_io = BytesIO(contenido_bytes)
+        
+#         # Enviar el objeto BytesIO como archivo adjunto
+#         return send_file(pdf_bytes_io, mimetype='application/pdf', download_name=nombre_archivo)
+#     else:
+#         return "El archivo no fue encontrado en la base de datos."
+    
+
+
 
 # @main_controller.route('/buscar', methods=['POST'])
 # def buscar():

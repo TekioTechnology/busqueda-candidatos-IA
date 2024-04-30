@@ -2,28 +2,3 @@ body{
     font-family: Arial, Helvetica, sans-serif;
     background-color: #635f5f;
 }
-.boton {
-    display: inline-block;
-    padding: 10px 20px;
-    font-size: 16px;
-    text-align: center;
-    text-decoration: none;
-    cursor: pointer;
-    border-radius: 5px;
-    color: #fffafa;
-}
-
-.boton-subir {
-    background-color: #008CBA;
-}
-
-.boton-buscar {
-    background-color: #008CBA;
-}
-
-.boton-regresar {
-    background-color: #333;
-}
-.boton-visualizar {
-    background-color: #4285f4; /* Cambia el color de fondo del botón de visualización */
-}
