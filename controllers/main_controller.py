@@ -12,7 +12,8 @@ def establecer_conexion():
 
 
 # mi_app/controllers/main_controller.py
-from flask import Blueprint, render_template, request, current_app, send_from_directory, Response,jsonify,send_file
+from flask import Blueprint, render_template, request,Response,jsonify,send_file
+
 import os
 import json
 import spacy
@@ -98,7 +99,7 @@ def ver_todos_los_archivos():
 
 
 
-  
+
 #---------------------------------------------------------------
 @main_controller.route('/descargar_archivo/<nombre_archivo>', methods=['GET'])
 def descargar_archivo(nombre_archivo):
@@ -107,12 +108,17 @@ def descargar_archivo(nombre_archivo):
         archivo = client.db.upload_cv.find_one({"nombre_archivo": nombre_archivo})
         if archivo:
             contenido_pdf = archivo["contenido"]
-            return send_file(BytesIO(contenido_pdf), mimetype='application/pdf', as_attachment=True, attachment_filename=nombre_archivo)
+            return send_file(BytesIO(contenido_pdf), mimetype='application/pdf', as_attachment=True, download_name=nombre_archivo)
         else:
             return "El archivo no fue encontrado en la base de datos."
     except Exception as e:
         return str(e), 500
 
+
+
+
+
+#----------------------------------------------------------------------
 @main_controller.route('/ver_archivo/<nombre_archivo>', methods=['GET'])
 def ver_archivo(nombre_archivo):
     try:
