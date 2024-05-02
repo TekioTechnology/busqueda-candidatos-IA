@@ -147,35 +147,6 @@ def editar_nombre_archivo(nombre_archivo):
     
 
 #funcion de busqueda
-@main_controller.route('/buscar_pdf', methods=['POST'])
-def buscar_pdf():
-    try:
-        palabra_clave = request.form.get('palabra_clave')
-        resultados = []
-
-        client = establecer_conexion()
-        for archivo in client.db.upload_cv.find():
-            contenido_pdf_codificado = archivo["contenido"]
-            contenido_pdf_decodificado = base64.b64decode(contenido_pdf_codificado)
-            
-            # Utiliza PyPDF2 para extraer el texto del PDF
-            with BytesIO(contenido_pdf_decodificado) as pdf_buffer:
-                pdf_reader = PdfReader(pdf_buffer)
-                texto_pdf = ""
-                for page in pdf_reader.pages:
-                    texto_pdf += page.extract_text()
-
-            # Busca la palabra clave en el texto extraído
-            if palabra_clave.lower() in texto_pdf.lower():
-                resultados.append(archivo["nombre_archivo"])
-
-        return jsonify(resultados=resultados)
-    except Exception as e:
-        return str(e), 500
-    
-@main_controller.route('/buscar_por_palabras_clave', methods=['GET'])
-def mostrar_formulario_busqueda():
-    return render_template('formulario_busqueda.html')
 
                 
 
@@ -247,3 +218,28 @@ def mostrar_formulario_busqueda():
 
 
 
+#funcion de busqueda
+# from bson import Binary
+
+# @main_controller.route('/buscar_pdfs', methods=['GET'])
+# def buscar_pdfs():
+#     try:
+#         palabra_clave = request.args.get('palabra_clave', '')
+#         client = establecer_conexion()
+#         resultados = []
+
+#         # Buscar en la base de datos
+#         for archivo in client.db.upload_cv.find():
+#             nombre_archivo = archivo["nombre_archivo"]
+#             contenido = archivo["contenido"]
+
+#             # Decodificar el contenido del archivo PDF de base64
+#             contenido_pdf = contenido["base64"].decode('base64')
+
+#             # Buscar la palabra clave en el contenido del PDF
+#             if palabra_clave.lower() in contenido_pdf.lower():
+#                 resultados.append({"nombre_archivo": nombre_archivo})
+
+#         return jsonify(resultados)
+#     except Exception as e:
+#         return str(e), 500
