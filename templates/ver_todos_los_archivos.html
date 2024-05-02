@@ -11,6 +11,10 @@
         {% for archivo in datos_archivos %}
             <li>
                 {{ archivo.nombre_archivo }}
+                <form action="{{ url_for('main_controller.editar_nombre_archivo', nombre_archivo=archivo.nombre_archivo) }}" method="post">
+                    <input type="text" name="nuevo_nombre" placeholder="Nuevo nombre">
+                    <button type="submit">Editar</button>
+                </form>
                 <a href="{{ url_for('main_controller.descargar_archivo', nombre_archivo=archivo.nombre_archivo) }}">Descargar</a>
                 <a href="{{ url_for('main_controller.ver_archivo', nombre_archivo=archivo.nombre_archivo) }}">Ver PDF</a>
             </li>

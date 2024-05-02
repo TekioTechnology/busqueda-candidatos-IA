@@ -16,11 +16,13 @@ from flask import Blueprint, render_template, request,Response,jsonify,send_file
 
 import os
 import json
-import spacy
+
+import base64
 from unidecode import unidecode
 from utils.cv_utils import extraer_texto_pdf, buscar_por_palabra_clave
 
 from io import BytesIO
+from PyPDF2 import PdfReader
 
 #importamos la configuracion de la base de datos
 # from connection_bbdd import establecer_conexion
@@ -100,7 +102,7 @@ def ver_todos_los_archivos():
 
 
 
-#---------------------------------------------------------------
+#---FUNCION PARA DESCARGAR ARCHIVOS
 @main_controller.route('/descargar_archivo/<nombre_archivo>', methods=['GET'])
 def descargar_archivo(nombre_archivo):
     try:
@@ -116,9 +118,7 @@ def descargar_archivo(nombre_archivo):
 
 
 
-
-
-#----------------------------------------------------------------------
+#-funcion para ver todos los archivos de la base de datos 
 @main_controller.route('/ver_archivo/<nombre_archivo>', methods=['GET'])
 def ver_archivo(nombre_archivo):
     try:
@@ -131,6 +131,53 @@ def ver_archivo(nombre_archivo):
             return "El archivo no fue encontrado en la base de datos."
     except Exception as e:
         return str(e), 500
+
+
+#funcion para editar los nombres de los pdfs
+@main_controller.route('/editar_nombre_archivo/<nombre_archivo>', methods=['POST'])
+def editar_nombre_archivo(nombre_archivo):
+    try:
+        nuevo_nombre = request.form.get('nuevo_nombre')
+        client = establecer_conexion()
+        resultado = client.db.upload_cv.update_one({"nombre_archivo": nombre_archivo}, {"$set": {"nombre_archivo": nuevo_nombre}})
+        mensaje = f"El nombre del archivo '{nombre_archivo}' se ha actualizado correctamente a '{nuevo_nombre}'." if resultado.modified_count > 0 else "No se encontró el archivo especificado para editar."
+        return render_template('mensaje_edicion.html', mensaje=mensaje)
+    except Exception as e:
+        return str(e), 500
+    
+
+#funcion de busqueda
+@main_controller.route('/buscar_pdf', methods=['POST'])
+def buscar_pdf():
+    try:
+        palabra_clave = request.form.get('palabra_clave')
+        resultados = []
+
+        client = establecer_conexion()
+        for archivo in client.db.upload_cv.find():
+            contenido_pdf_codificado = archivo["contenido"]
+            contenido_pdf_decodificado = base64.b64decode(contenido_pdf_codificado)
+            
+            # Utiliza PyPDF2 para extraer el texto del PDF
+            with BytesIO(contenido_pdf_decodificado) as pdf_buffer:
+                pdf_reader = PdfReader(pdf_buffer)
+                texto_pdf = ""
+                for page in pdf_reader.pages:
+                    texto_pdf += page.extract_text()
+
+            # Busca la palabra clave en el texto extraído
+            if palabra_clave.lower() in texto_pdf.lower():
+                resultados.append(archivo["nombre_archivo"])
+
+        return jsonify(resultados=resultados)
+    except Exception as e:
+        return str(e), 500
+    
+@main_controller.route('/buscar_por_palabras_clave', methods=['GET'])
+def mostrar_formulario_busqueda():
+    return render_template('formulario_busqueda.html')
+
+                
 
 
 
