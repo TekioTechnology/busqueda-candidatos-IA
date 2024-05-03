@@ -1,0 +1,29 @@
+<!-- templates/prompt_busqueda.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Búsqueda</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <h2>Ingresa palabras clave para buscar</h2>
+    <form action="{{ url_for('main_controller.buscar') }}" method="POST">
+        <input type="text" name="palabras_clave" placeholder="Ingrese palabras clave...">
+        <button type="submit" class="boton boton-buscar">Buscar</button>
+    </form>
+
+    <!-- Mostrar resultados de búsqueda -->
+    {% if resultados %}
+        <h2>Resultados de la búsqueda:</h2>
+        <ul>
+            {% for resultado in resultados %}
+                <li>{{ resultado }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No se han encontrado resultados.</p>
+    {% endif %}
+</body>
+</html>
