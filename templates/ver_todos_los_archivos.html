@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
     <title>Ver Todos los CVs</title>
 </head>
 <body>
-    <h1>Archivos en la Base de Datos</h1>
-    <ul>
+    <h1>Todos los CV almacenados</h1>
+    <a href="{{ url_for('index') }}" class="boton boton-volver">⬅</a>
+
+
+    <ul class="ul-view-all">
         {% for archivo in datos_archivos %}
-            <li>
+            <li class="li-view-all">
                 {{ archivo.nombre_archivo }}
-                <form action="{{ url_for('main_controller.editar_nombre_archivo', nombre_archivo=archivo.nombre_archivo) }}" method="post">
-                    <input type="text" name="nuevo_nombre" placeholder="Nuevo nombre">
-                    <button type="submit">Editar</button>
+                <form action="{{ url_for('main_controller.editar_nombre_archivo', nombre_archivo=archivo.nombre_archivo) }}" method="post" class="form-edit">
+                    <input type="text" name="nuevo_nombre" placeholder="Nuevo nombre" class="input">
+                    <button type="submit" class="boton-editar">Editar</button>
                 </form>
-                <a href="{{ url_for('main_controller.descargar_archivo', nombre_archivo=archivo.nombre_archivo) }}">Descargar</a>
-                <a href="{{ url_for('main_controller.ver_archivo', nombre_archivo=archivo.nombre_archivo) }}">Ver PDF</a>
+                <div class="container-functions">
+                    <a href="{{ url_for('main_controller.descargar_archivo', nombre_archivo=archivo.nombre_archivo) }}" class="descargar-pdf">Descargar</a>
+                    <a href="{{ url_for('main_controller.ver_archivo', nombre_archivo=archivo.nombre_archivo) }}" class="ver-pdf">Ver PDF</a>
+
+                </div>
+               
             </li>
         {% endfor %}
     </ul>

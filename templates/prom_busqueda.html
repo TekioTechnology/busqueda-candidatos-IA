@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
+    <a href="{{ url_for('index') }}" class="boton boton-volver">Volver al Índice</a>
+
     <h2>Ingresa palabras clave para buscar</h2>
     <form action="{{ url_for('main_controller.buscar') }}" method="POST">
         <input type="text" name="palabras_clave" placeholder="Ingrese palabras clave...">
@@ -19,7 +21,11 @@
         <h2>Resultados de la búsqueda:</h2>
         <ul>
             {% for resultado in resultados %}
-                <li>{{ resultado }}</li>
+                <li>
+                    <a href="{{ resultado.url_vista_previa_pdf }}" target="_blank">Vista Previa</a>
+                    |
+                    <a href="{{ resultado.url_descarga_pdf }}">Descargar {{ resultado.nombre_archivo }}</a>
+                </li>
             {% endfor %}
         </ul>
     {% else %}

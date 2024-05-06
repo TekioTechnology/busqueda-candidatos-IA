@@ -4,15 +4,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <title>Subir CV</title>
 </head>
 <body>
-    <h1>Subir CV</h1>
-    <form action="{{ url_for('main_controller.subir_cv') }}" method="post" enctype="multipart/form-data">
-        <label for="cv">Selecciona tu CV (PDF):</label>
-        <input type="file" name="cv" id="cv" accept=".pdf" required>
+    <a href="{{ url_for('index') }}" class="boton-volver">⬅</a>
+
+    <form action="{{ url_for('main_controller.subir_cv') }}" method="post" enctype="multipart/form-data" class="form-container">
+        <div class="button"></div>
+        <label for="cv" class="label-1-form">Selecciona el archivo que deseas subir!</label>
+    </br>
+        <input type="file" name="cv" id="cv" accept=".pdf" required class="input-file"> 
         <br>
-        <input type="submit" value="Subir CV">
+        <input type="submit" value="Subir CV" class="submit-cv">
     </form>
 </body>
 </html>

@@ -3,6 +3,7 @@ from controllers.main_controller import main_controller
 from flask_cors import CORS
 
 app = Flask(__name__)
+app.secret_key = 'Ub_2024'  # Reemplaza esto con tu propia clave secreta
 CORS(app)
 app.register_blueprint(main_controller)
 

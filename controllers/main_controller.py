@@ -14,7 +14,7 @@ def establecer_conexion():
 
 # mi_app/controllers/main_controller.py
 
-from flask import Blueprint, render_template, request,Response,jsonify,send_file
+from flask import Blueprint, render_template, request,Response,jsonify,send_file, make_response,redirect,url_for
 
 from utils.escaner_extraer import escanear_pdf
 from io import BytesIO
@@ -25,7 +25,7 @@ main_controller = Blueprint('main_controller', __name__)
 
 
 
-#--------------EDITAR CODIGO 
+#--funcion subir cv
 @main_controller.route('/subir_cv', methods=['GET', 'POST'])
 def subir_cv():
     try:
@@ -54,7 +54,9 @@ def subir_cv():
                         "campos": campos
                 })
 
-                return 'CV subido exitosamente', 200
+                return 'CV subido exitosamente, cargando para volver al inicio', 200 
+                #vuelve al inicio despues de 8 segundos despues de haber mostrado el mensaje
+                
     except Exception as e:
         return str(e), 500
 
@@ -91,6 +93,7 @@ def ver_todos_los_archivos():
 
 
 #---FUNCION PARA DESCARGAR ARCHIVOS
+
 @main_controller.route('/descargar_archivo/<nombre_archivo>', methods=['GET'])
 def descargar_archivo(nombre_archivo):
     try:
@@ -98,7 +101,13 @@ def descargar_archivo(nombre_archivo):
         archivo = client.db.upload_cv.find_one({"nombre_archivo": nombre_archivo})
         if archivo:
             contenido_pdf = archivo["contenido"]
-            return send_file(BytesIO(contenido_pdf), mimetype='application/pdf', as_attachment=True, download_name=nombre_archivo)
+            # Asegurarse de que el nombre del archivo tenga la extensión ".pdf"
+            if not nombre_archivo.endswith('.pdf'):
+                nombre_archivo += '.pdf'
+            response = make_response(contenido_pdf)
+            response.headers['Content-Type'] = 'application/pdf'
+            response.headers['Content-Disposition'] = f'attachment; filename={nombre_archivo}'
+            return response
         else:
             return "El archivo no fue encontrado en la base de datos."
     except Exception as e:
@@ -134,7 +143,7 @@ def editar_nombre_archivo(nombre_archivo):
         return str(e), 500
     
 
-#funcion de busqueda
+# Función de búsqueda
 @main_controller.route('/buscar', methods=['GET', 'POST'])
 def buscar():
     if request.method == 'POST':
@@ -163,7 +172,15 @@ def buscar():
                                 resultados.append(documento)
                                 break
 
-            return render_template('prom_busqueda.html', resultados=resultados)
+            # Preparamos los resultados para mostrar solo el nombre del archivo y la URL de vista previa y descarga del PDF
+            resultados_preparados = []
+            for resultado in resultados:
+                nombre_archivo = resultado.get('nombre_archivo')
+                url_vista_previa_pdf = f"/ver_archivo/{nombre_archivo}"  # <-- Aquí se crea la URL de vista previa
+                url_descarga_pdf = f"/descargar_archivo/{nombre_archivo}"
+                resultados_preparados.append({'nombre_archivo': nombre_archivo, 'url_vista_previa_pdf': url_vista_previa_pdf, 'url_descarga_pdf': url_descarga_pdf})
+
+            return render_template('prom_busqueda.html', resultados=resultados_preparados)
 
         except Exception as e:
             return str(e), 500
