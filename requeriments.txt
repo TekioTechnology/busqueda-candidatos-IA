@@ -1,7 +1,13 @@
-#paquetes o librerias instaladas en el proyecto 
 Flask
 Flask-CORS
 unidecode
 pymupdf
 spacy
 pymongo
+PyPDF2
+python-dotenv
+openai
+azure-ai-documentintelligence
+azure-core
+sentence-transformers
+numpy

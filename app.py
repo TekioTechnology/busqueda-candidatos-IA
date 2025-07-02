@@ -1,15 +1,21 @@
-from flask import Flask,render_template
-from controllers.main_controller import main_controller
-from flask_cors import CORS
+from flask import Flask
+from routes import register_routes
+from werkzeug.exceptions import RequestEntityTooLarge
+from dotenv import load_dotenv
 
-app = Flask(__name__)
-app.secret_key = 'Ub_2024'  # Reemplaza esto con tu propia clave secreta
-CORS(app)
-app.register_blueprint(main_controller)
+load_dotenv()
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+def create_app():
+    app = Flask(__name__)
+    app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20 MB
 
-if __name__ == '__main__':
-    app.run(debug=True,port=9000)
+    @app.errorhandler(RequestEntityTooLarge)
+    def handle_file_too_large(e):
+        return {"error": "El archivo es demasiado grande. Límite: 20 MB"}, 413
+
+    register_routes(app)
+    return app
+
+if __name__ == "__main__":
+    app = create_app()
+    app.run(host="0.0.0.0", port=3000, debug=True)

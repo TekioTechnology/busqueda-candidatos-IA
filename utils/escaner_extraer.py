@@ -2,6 +2,52 @@ import re
 from PyPDF2 import PdfReader
 from io import BytesIO
 
+
+
+def dividir_secciones(texto):
+    secciones = {
+        "acerca_de": "",
+        "educacion": "",
+        "experiencia": "",
+        "habilidades": "",
+        "idiomas": "",
+        "otros": ""
+    }
+
+    patrones = {
+        "acerca_de": r"(ACERCA DE M[IÍ]|PERFIL|SOBRE M[IÍ])",
+        "educacion": r"(EDUCACI[ÓO]N|FORMACI[ÓO]N)",
+        "experiencia": r"(EXPERIENCIA|TRAYECTORIA|CARRERA PROFESIONAL)",
+        "habilidades": r"(HABILIDADES|COMPETENCIAS|CONOCIMIENTOS)",
+        "idiomas": r"(IDIOMAS)",
+    }
+
+    texto = texto.upper()
+    secciones_detectadas = list(patrones.keys())
+
+    indices = {}
+    for clave, patron in patrones.items():
+        match = re.search(patron, texto)
+        if match:
+            indices[clave] = match.start()
+
+    # Ordenamos las secciones encontradas
+    secciones_ordenadas = sorted(indices.items(), key=lambda x: x[1])
+
+    for i, (clave, inicio) in enumerate(secciones_ordenadas):
+        fin = secciones_ordenadas[i+1][1] if i+1 < len(secciones_ordenadas) else len(texto)
+        secciones[clave] = texto[inicio:fin].strip()
+
+    # Resto del texto se guarda como "otros"
+    texto_seccionado = "".join(secciones.values())
+    resto = texto.replace(texto_seccionado, "")
+    secciones["otros"] = resto.strip()
+
+    return secciones
+
+
+
+
 def extraer_texto_pdf(contenido_pdf):
     # Creamos un objeto PdfReader
     pdf = PdfReader(BytesIO(contenido_pdf))
@@ -68,3 +114,12 @@ def escanear_pdf(contenido_pdf):
     }
     
     return texto_pdf, campos
+
+def extraer_campos_desde_texto(texto_pdf):
+    return {
+        "correo": extraer_correo(texto_pdf),
+        "telefono": extraer_telefono(texto_pdf),
+        "nombre": extraer_nombre(texto_pdf),
+        "formacion": extraer_formacion(texto_pdf),
+        "experiencia": extraer_experiencia(texto_pdf),
+    }

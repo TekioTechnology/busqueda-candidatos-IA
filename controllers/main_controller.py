@@ -6,7 +6,7 @@ from pymongo.server_api import ServerApi
 
 #----------------funcion de conexion con la base de datos
 def establecer_conexion():
-    uri = "mongodb+srv://mimika:1.Cambiame@databasecluster.ldcnr5i.mongodb.net/?retryWrites=true&w=majority&appName=DatabaseCluster"
+    uri = "mongodb+srv://tekiotechnology:Developer00@cluster0.mczls2q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
     client = MongoClient(uri, server_api=ServerApi('1'))
     return client['ub_cv']  # Devuelve la base de datos 'ub_cv'
 
