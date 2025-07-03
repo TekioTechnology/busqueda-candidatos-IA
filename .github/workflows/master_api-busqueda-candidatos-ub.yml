@@ -38,12 +38,18 @@ jobs:
           cp -r routes deploy/
           cp -r utils deploy/
           # Si tienes otros archivos como .env, templates, static, etc., agrégalos aquí
+          
+      - name: Create ZIP package
+        run: |
+          cd deploy
+          zip -r ../python-app.zip .
+          cd ..
       
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: deploy/  # Subir la carpeta directamente, no un ZIP
+          path: python-app.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -57,7 +63,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: python-app
-          path: ./deploy  # Descargar en carpeta específica
+          path: ./
       
       - name: Azure Login
         uses: azure/login@v2
@@ -66,10 +72,20 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1E9FDF33F2044A3AAC13F02DFA3F6458 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_71328409628B428EA0CB7F204768AF8A }}
       
+      - name: Stop Azure Web App
+        run: |
+          az webapp stop --name api-busqueda-candidatos-ub --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}
+        continue-on-error: true
+      
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'api-busqueda-candidatos-ub'
-          package: ./deploy
-          clean: true  # Limpiar archivos existentes antes del despliegue
-          restart: true  # Reiniciar la aplicación después del despliegue
+          package: python-app.zip
+          clean: true
+          restart: true
+          
+      - name: Start Azure Web App
+        run: |
+          az webapp start --name api-busqueda-candidatos-ub --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }}
+        continue-on-error: true
