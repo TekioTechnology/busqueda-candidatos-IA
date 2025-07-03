@@ -70,4 +70,6 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'api-busqueda-candidatos-ub'
-          package: ./deploy  # Usar la carpeta, no un ZIP
+          package: ./deploy
+          clean: true  # Limpiar archivos existentes antes del despliegue
+          restart: true  # Reiniciar la aplicación después del despliegue
