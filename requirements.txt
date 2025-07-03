@@ -11,3 +11,4 @@ azure-ai-documentintelligence
 azure-core
 sentence-transformers
 numpy
+gunicorn

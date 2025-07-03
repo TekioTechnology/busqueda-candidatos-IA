@@ -16,6 +16,8 @@ def create_app():
     register_routes(app)
     return app
 
+# Necesario para Azure (Gunicorn buscará este objeto)
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
     app.run(host="0.0.0.0", port=3000, debug=True)
