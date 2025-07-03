@@ -11,35 +11,39 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
+    
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
+      
       - name: Install dependencies
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-
+      
       - name: Prepare deployment package
         run: |
           mkdir deploy
-          cp -r app.py config controllers routes utils requirements.txt deploy/
-          cd deploy
-          zip -r ../release.zip .
-          cd ..
-
+          # Copia todos los archivos necesarios manteniendo la estructura
+          cp app.py deploy/
+          cp requirements.txt deploy/
+          cp -r config deploy/
+          cp -r controllers deploy/
+          cp -r routes deploy/
+          cp -r utils deploy/
+          # Si tienes otros archivos como .env, templates, static, etc., agrégalos aquí
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: release.zip
+          path: deploy/  # Subir la carpeta directamente, no un ZIP
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,25 +51,23 @@ jobs:
     permissions:
       id-token: write
       contents: read
-
+    
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
-
-      - name: Unzip artifact
-        run: unzip release.zip
-
+          path: ./deploy  # Descargar en carpeta específica
+      
       - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B49CE12899FF429AA60C6BD1780E069A }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1E9FDF33F2044A3AAC13F02DFA3F6458 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_71328409628B428EA0CB7F204768AF8A }}
-
+      
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'api-busqueda-candidatos-ub'
-          package: release.zip
+          package: ./deploy  # Usar la carpeta, no un ZIP
