@@ -11,40 +11,39 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      
+
       - name: Install dependencies
         run: |
           python -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
           pip install -r requirements.txt
-      
+
       - name: Prepare deployment package
         run: |
           mkdir deploy
-          # Copia todos los archivos necesarios manteniendo la estructura
           cp app.py deploy/
           cp requirements.txt deploy/
           cp -r config deploy/
           cp -r controllers deploy/
           cp -r routes deploy/
           cp -r utils deploy/
-          # Si tienes otros archivos como .env, templates, static, etc., agrégalos aquí
-          
+          # Añade aquí si tienes archivos como .env, static/, templates/, etc.
+
       - name: Create ZIP package
         run: |
           cd deploy
-          zip -r ../python-app.zip .
+          zip -r ../python-app.zip * .[^.]* || true
           cd ..
-      
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -57,25 +56,29 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    
+
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
           path: ./
-      
+
       - name: Azure Login
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_B49CE12899FF429AA60C6BD1780E069A }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1E9FDF33F2044A3AAC13F02DFA3F6458 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_71328409628B428EA0CB7F204768AF8A }}
-      
+
+      - name: Esperar tras login
+        run: sleep 10
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'api-busqueda-candidatos-ub'
           package: python-app.zip
+          type: zip
           clean: true
           restart: true
