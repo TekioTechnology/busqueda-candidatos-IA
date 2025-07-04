@@ -12,6 +12,10 @@ def create_app():
     @app.errorhandler(RequestEntityTooLarge)
     def handle_file_too_large(e):
         return {"error": "El archivo es demasiado grande. Límite: 20 MB"}, 413
+    
+    @app.route("/", methods=["GET"])
+    def welcome():
+        return {"mensaje": "Bienvenido a la API de búsqueda de candidatos"}, 200
 
     register_routes(app)
     return app
