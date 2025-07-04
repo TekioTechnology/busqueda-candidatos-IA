@@ -70,6 +70,9 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_17EA177940FA4D428D4B0242C97B4156 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_52C05E71143448CEBA3131777DBB5458 }}
 
+      - name: Esperar para evitar conflicto por reinicio
+        run: sleep 30
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
@@ -77,7 +80,6 @@ jobs:
           app-name: 'busqueda-candidatos-rrhh-ub'
           slot-name: 'Production'
 
-      - name: Esperar para evitar conflicto por reinicio
-        run: sleep 30
+     
 
           
