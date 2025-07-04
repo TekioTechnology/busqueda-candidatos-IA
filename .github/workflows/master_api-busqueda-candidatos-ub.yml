@@ -32,6 +32,7 @@ jobs:
           mkdir deploy
           cp app.py deploy/
           cp requirements.txt deploy/
+          cp web.config deploy/
           cp -r config deploy/
           cp -r controllers deploy/
           cp -r routes deploy/
