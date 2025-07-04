@@ -59,6 +59,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_17EA177940FA4D428D4B0242C97B4156 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_52C05E71143448CEBA3131777DBB5458 }}
 
+
+      - name: Esperar 60s para estabilizar contenedor
+        run: sleep 60
+
+
       - name: Desplegar a Azure Web App
         uses: azure/webapps-deploy@v3
         with:
