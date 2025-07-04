@@ -1,4 +1,4 @@
-name: Build and deploy Python app to Azure Web App - api-busqueda-candidatos-ub
+name: Build and deploy Python app to Azure Web App - busqueda-candidatos-rrhh-ub
 
 on:
   push:
@@ -8,75 +8,68 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    runs-on: windows-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python version
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Create and start virtual environment
+      - name: Install dependencies
         run: |
           python -m venv venv
-          source venv/bin/activate
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+          .\venv\Scripts\activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Prepare deployment package
         run: |
           mkdir deploy
-          cp app.py deploy/
-          cp requirements.txt deploy/
-          cp web.config deploy/
-          cp -r config deploy/
-          cp -r controllers deploy/
-          cp -r routes deploy/
-          cp -r utils deploy/
-          # Añade aquí si tienes archivos como .env, templates/, static/, etc.
+          copy app.py deploy\
+          copy requirements.txt deploy\
+          copy web.config deploy\  # ← si no lo tienes, te puedo generar uno
+          xcopy config deploy\config /E /I
+          xcopy controllers deploy\controllers /E /I
+          xcopy routes deploy\routes /E /I
+          xcopy utils deploy\utils /E /I
 
       - name: Create ZIP package
         run: |
           cd deploy
-          zip -r ../python-app.zip * .[^.]* || true
+          powershell Compress-Archive -Path * -DestinationPath ../python-app.zip
           cd ..
 
-      - name: Upload artifact for deployment jobs
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
           path: python-app.zip
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
+          path: ./
 
-      # ❌ No se descomprime el ZIP, se usa directamente
-      - name: Login to Azure
+      - name: Azure Login
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_44BBEA52D37A456CBBC044A5E8F3966C }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_CF504608B3A2474BBCBA159C6FACC7C7 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_69ABCD326F3B49B58C6D8F754061F9B0 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_NUEVO }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_NUEVO }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_NUEVO }}
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'api-busqueda-candidatos-ub'
+          app-name: 'busqueda-candidatos-rrhh-ub'
           package: python-app.zip
           type: zip
           clean: true
