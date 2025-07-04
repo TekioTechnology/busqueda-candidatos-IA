@@ -76,4 +76,8 @@ jobs:
         with:
           app-name: 'busqueda-candidatos-rrhh-ub'
           slot-name: 'Production'
+
+      - name: Esperar para evitar conflicto por reinicio
+        run: sleep 30
+
           
