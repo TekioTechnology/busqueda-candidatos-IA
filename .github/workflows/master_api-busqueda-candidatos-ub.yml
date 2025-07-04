@@ -79,7 +79,9 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'api-busqueda-candidatos-ub'
-          package: .
+          package: python-app.zip
           type: zip
           clean: true
           restart: true
+          slot-name: production
+
