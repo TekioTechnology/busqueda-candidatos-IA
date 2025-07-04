@@ -38,7 +38,7 @@ jobs:
           cp -r controllers deploy/
           cp -r routes deploy/
           cp -r utils deploy/
-          # Si tienes archivos como .env, templates/, static/, agrégalos aquí
+          # Añade aquí si tienes archivos como .env, templates/, static/, etc.
 
       - name: Create ZIP package
         run: |
@@ -65,9 +65,7 @@ jobs:
         with:
           name: python-app
 
-      - name: Unzip artifact for deployment
-        run: unzip python-app.zip
-
+      # ❌ No se descomprime el ZIP, se usa directamente
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -84,4 +82,3 @@ jobs:
           clean: true
           restart: true
           slot-name: production
-
