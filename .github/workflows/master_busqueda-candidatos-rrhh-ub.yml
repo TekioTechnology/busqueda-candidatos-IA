@@ -24,11 +24,17 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
+          pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Verificar instalación
+        run: |
+          source venv/bin/activate
+          pip list
 
       - name: Empaquetar proyecto sin carpetas innecesarias
         run: |
-          zip -r release.zip . -x "venv/*" ".git/*" ".github/*" "*.zip"
+          zip -r release.zip . -x "venv/*" ".git/*" ".github/*" "*.zip" "__pycache__/*" "*.pyc"
 
       - name: Subir artefacto
         uses: actions/upload-artifact@v4
@@ -49,9 +55,6 @@ jobs:
         with:
           name: python-app
 
-      - name: Esperar para evitar conflicto de reinicio
-        run: sleep 30
-
       - name: Login a Azure
         uses: azure/login@v2
         with:
@@ -59,14 +62,49 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_17EA177940FA4D428D4B0242C97B4156 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_52C05E71143448CEBA3131777DBB5458 }}
 
-
-      - name: Esperar 60s para estabilizar contenedor
-        run: sleep 60
-
-
       - name: Desplegar a Azure Web App
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'busqueda-candidatos-rrhh-ub'
           slot-name: 'Production'
           package: 'release.zip'
+
+      - name: Esperar a que la aplicación se reinicie
+        run: sleep 120
+
+      - name: Verificar estado de la aplicación
+        run: |
+          echo "Verificando estado de la aplicación..."
+          for i in {1..10}; do
+            echo "Intento $i de 10"
+            if curl -f -s "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/health"; then
+              echo "✅ Aplicación responde correctamente"
+              break
+            else
+              echo "⏳ Esperando que la aplicación esté lista..."
+              sleep 30
+            fi
+          done
+
+      - name: Warm-up de la aplicación
+        run: |
+          echo "Iniciando warm-up de la aplicación..."
+          for i in {1..5}; do
+            echo "Warm-up intento $i de 5"
+            if curl -f -s "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/warm-up"; then
+              echo "✅ Warm-up exitoso"
+              break
+            else
+              echo "⏳ Reintentando warm-up..."
+              sleep 20
+            fi
+          done
+
+      - name: Verificar endpoints principales
+        run: |
+          echo "Verificando endpoints principales..."
+          echo "🔍 Endpoint raíz:"
+          curl -s "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/" | head -c 200
+          echo -e "\n🔍 Health check:"
+          curl -s "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/health" | head -c 200
+          echo -e "\n✅ Deployment completado exitosamente"
