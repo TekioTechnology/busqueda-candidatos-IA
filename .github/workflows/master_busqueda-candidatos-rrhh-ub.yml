@@ -115,8 +115,21 @@ jobs:
               {
                 "name": "PORT",
                 "value": "8000"
+              },
+              {
+                "name": "STARTUP_COMMAND",
+                "value": "startup.txt"
+              },
+              {
+                "name": "AZURE_DOC_INTEL_ENDPOINT",
+                "value": "${{ secrets.AZURE_DOC_INTEL_ENDPOINT }}"
+              },
+              {
+                "name": "AZURE_DOC_INTEL_KEY",
+                "value": "${{ secrets.AZURE_DOC_INTEL_KEY }}"
               }
             ]
+
       
       - name: Deploy to Azure Web App
         id: deploy
