@@ -11,32 +11,60 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-
+    
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-
-      - name: Instalar dependencias
+      
+      - name: Create and activate virtual environment
         run: |
           python -m venv venv
           source venv/bin/activate
-          pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Verificar instalación
+          echo "Virtual environment activated"
+          echo "Python version: $(python --version)"
+          echo "Pip version: $(pip --version)"
+      
+      - name: Upgrade pip and install dependencies
         run: |
           source venv/bin/activate
-          pip list
-
-      - name: Empaquetar proyecto sin carpetas innecesarias
+          pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Verify installation and test import
         run: |
-          zip -r release.zip . -x "venv/*" ".git/*" ".github/*" "*.zip" "__pycache__/*" "*.pyc"
-
-      - name: Subir artefacto
+          source venv/bin/activate
+          echo "Installed packages:"
+          pip list
+          echo "Testing Flask app import..."
+          python -c "from app import app; print('✅ Flask app imported successfully')"
+      
+      - name: Clean up and prepare for deployment
+        run: |
+          # Remove virtual environment (will be recreated on Azure)
+          rm -rf venv
+          
+          # Remove unnecessary files
+          rm -rf .git
+          rm -rf .github
+          rm -rf __pycache__
+          find . -name "*.pyc" -delete
+          find . -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+          
+          # Create deployment structure
+          echo "Files to be deployed:"
+          find . -type f -name "*.py" -o -name "*.txt" -o -name "*.json" -o -name "*.yml" -o -name "*.yaml" | head -20
+      
+      - name: Create deployment package
+        run: |
+          zip -r release.zip . -x "*.zip" "venv/*" ".git/*" ".github/*"
+          echo "Package created: release.zip"
+          echo "Package size: $(du -h release.zip)"
+      
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
@@ -48,63 +76,93 @@ jobs:
     permissions:
       id-token: write
       contents: read
-
+    
     steps:
-      - name: Descargar artefacto
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
-
-      - name: Login a Azure
+      
+      - name: Login to Azure
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_85C63E05B2DD488892E86993B27E9C48 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_17EA177940FA4D428D4B0242C97B4156 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_52C05E71143448CEBA3131777DBB5458 }}
-
-      - name: Desplegar a Azure Web App
+      
+      - name: Configure App Service settings
+        uses: azure/appservice-settings@v1
+        with:
+          app-name: 'busqueda-candidatos-rrhh-ub'
+          app-settings-json: |
+            [
+              {
+                "name": "SCM_DO_BUILD_DURING_DEPLOYMENT",
+                "value": "true"
+              },
+              {
+                "name": "ENABLE_ORYX_BUILD",
+                "value": "true"
+              },
+              {
+                "name": "PYTHONPATH",
+                "value": "/home/site/wwwroot"
+              },
+              {
+                "name": "FLASK_ENV",
+                "value": "production"
+              },
+              {
+                "name": "PORT",
+                "value": "8000"
+              }
+            ]
+      
+      - name: Deploy to Azure Web App
+        id: deploy
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'busqueda-candidatos-rrhh-ub'
           slot-name: 'Production'
           package: 'release.zip'
-
-      - name: Esperar a que la aplicación se reinicie
-        run: sleep 120
-
-      - name: Verificar estado de la aplicación
+      
+      - name: Wait for deployment to complete
         run: |
-          echo "Verificando estado de la aplicación..."
-          for i in {1..10}; do
-            echo "Intento $i de 10"
-            if curl -f -s "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/health"; then
-              echo "✅ Aplicación responde correctamente"
+          echo "Deployment completed, waiting for app to start..."
+          sleep 60
+      
+      - name: Check deployment status
+        run: |
+          echo "Checking deployment status..."
+          
+          # Check if the app is responding
+          for i in {1..20}; do
+            echo "Health check attempt $i/20..."
+            
+            if curl -f -s -m 30 "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/health"; then
+              echo "✅ Application is healthy!"
               break
             else
-              echo "⏳ Esperando que la aplicación esté lista..."
+              echo "⏳ Application not ready yet, waiting..."
               sleep 30
             fi
-          done
-
-      - name: Warm-up de la aplicación
-        run: |
-          echo "Iniciando warm-up de la aplicación..."
-          for i in {1..5}; do
-            echo "Warm-up intento $i de 5"
-            if curl -f -s "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/warm-up"; then
-              echo "✅ Warm-up exitoso"
-              break
-            else
-              echo "⏳ Reintentando warm-up..."
-              sleep 20
+            
+            if [ $i -eq 20 ]; then
+              echo "❌ Application failed to start properly"
+              exit 1
             fi
           done
-
-      - name: Verificar endpoints principales
+      
+      - name: Warm up application
         run: |
-          echo "Verificando endpoints principales..."
-          echo "🔍 Endpoint raíz:"
-          curl -s "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/" | head -c 200
-          echo -e "\n🔍 Health check:"
-          curl -s "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/health" | head -c 200
-          echo -e "\n✅ Deployment completado exitosamente"
+          echo "Warming up application..."
+          curl -f -s -m 60 "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/warm-up" || echo "Warm-up endpoint not ready"
+      
+      - name: Final verification
+        run: |
+          echo "Final verification..."
+          echo "Root endpoint:"
+          curl -s -m 30 "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/" | head -c 300
+          echo -e "\n\nHealth endpoint:"
+          curl -s -m 30 "https://busqueda-candidatos-rrhh-ub-f8bvh9achxebhpcr.westus2-01.azurewebsites.net/health" | head -c 300
+          echo -e "\n\n✅ Deployment completed successfully!"

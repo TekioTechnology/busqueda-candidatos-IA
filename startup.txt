@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Configurar variables de entorno
+export PYTHONPATH=/home/site/wwwroot:$PYTHONPATH
+export FLASK_ENV=production
+
+# Logging
+echo "Starting application deployment..."
+echo "Python version: $(python --version)"
+echo "Current directory: $(pwd)"
+echo "Directory contents:"
+ls -la
+
+# Verificar que los archivos necesarios existen
+if [ ! -f "app.py" ]; then
+    echo "ERROR: app.py not found!"
+    exit 1
+fi
+
+if [ ! -f "requirements.txt" ]; then
+    echo "ERROR: requirements.txt not found!"
+    exit 1
+fi
+
+# Instalar dependencias si no están instaladas
+if [ ! -d "venv" ]; then
+    echo "Creating virtual environment..."
+    python -m venv venv
+fi
+
+# Activar entorno virtual
+source venv/bin/activate
+
+# Actualizar pip
+pip install --upgrade pip
+
+# Instalar dependencias
+echo "Installing requirements..."
+pip install -r requirements.txt
+
+# Verificar que la aplicación Flask puede importarse
+echo "Testing Flask app import..."
+python -c "from app import app; print('Flask app imported successfully')"
+
+# Iniciar la aplicación con gunicorn
+echo "Starting gunicorn..."
+exec gunicorn --bind 0.0.0.0:8000 \
+    --workers 1 \
+    --timeout 300 \
+    --keep-alive 2 \
+    --max-requests 1000 \
+    --max-requests-jitter 50 \
+    --preload \
+    --log-level info \
+    --access-logfile - \
+    --error-logfile - \
+    app:app

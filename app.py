@@ -174,7 +174,8 @@ if not _models_loaded:
     background_thread.start()
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 3000))
+    # CORREGIDO: Cambiar puerto de 3000 a 8000 para Azure App Service
+    port = int(os.environ.get("PORT", 8000))
     debug_mode = os.environ.get("FLASK_ENV", "production") != "production"
     
     logger.info(f"Iniciando aplicación en puerto {port}")

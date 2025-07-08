@@ -1,14 +1,31 @@
-Flask
-Flask-CORS
-unidecode
-pymupdf
-spacy
-pymongo
-PyPDF2
-python-dotenv
-openai
-azure-ai-documentintelligence
-azure-core
-sentence-transformers
-numpy
-gunicorn
+# Core web framework
+Flask==3.1.1
+Flask-CORS==6.0.1
+gunicorn==23.0.0
+
+# Azure services
+azure-ai-documentintelligence==1.0.2
+azure-core==1.35.0
+
+# Document processing
+PyPDF2==3.0.1
+Pillow==11.3.0
+
+# ML and NLP
+torch==2.7.1
+transformers==4.53.1
+sentence-transformers==5.0.0
+spacy==3.8.7
+
+# Data processing
+numpy==2.3.1
+scipy==1.16.0
+scikit-learn==1.7.0
+
+# Utilities
+python-dotenv==1.1.1
+requests==2.32.4
+urllib3==2.5.0
+
+# Development
+werkzeug==3.1.3
