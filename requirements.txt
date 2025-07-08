@@ -2,6 +2,8 @@
 Flask==3.1.1
 Flask-CORS==6.0.1
 gunicorn==23.0.0
+pymongo==4.7.2
+
 
 # Azure services
 azure-ai-documentintelligence==1.0.2
