@@ -27,23 +27,54 @@ def subir_cv():
 
         # Iniciar el spinner
         detener_spinner = mostrar_spinner("🔄 Procesando CV con Azure OCR")
-
         # Leer el contenido del archivo
         contenido_pdf = archivo_cv.read()
-
         # Detener el spinner
         detener_spinner()
 
         # Procesar OCR
         texto_pdf = extraer_texto_ocr(contenido_pdf)
-
         # Extraer campos conocidos del PDF con expresiones regulares
         _, campos_extraidos = escanear_pdf(contenido_pdf)
-
         # Dividir secciones principales del texto OCR
         secciones = dividir_secciones(texto_pdf)
-
         embedding = generar_embedding(texto_pdf)
+        
+        #capturamos los campos del formulario de trabaja con nosotros
+        origen = request.form.get("origen", "envio_directo")
+        
+        if origen == "envio_directo":
+            datos_formulario = {
+                "nombre": request.form.get("nombre"),
+                "email": request.form.get("email"),
+                "telefono": request.form.get("telefono"),
+                "ubicacion": request.form.get("ubicacion"),
+                "puesto_actual": request.form.get("puesto_actual"),
+                "experiencia": request.form.get("experiencia"),
+                "disponibilidad": request.form.get("disponibilidad"),
+                "centro_conocido": request.form.get("centro_conocido"),
+                "comentarios": request.form.get("comentarios")
+            }
+        elif origen == "recomendacion":
+            datos_formulario = {
+                "recomendador": {
+                    "nombre": request.form.get("reco_nombre"),
+                    "email": request.form.get("reco_email"),
+                    "telefono": request.form.get("reco_telefono"),
+                    "relacion": request.form.get("reco_relacion")
+                },
+                "candidato": {
+                    "nombre": request.form.get("cand_nombre"),
+                    "email": request.form.get("cand_email"),
+                    "telefono": request.form.get("cand_telefono"),
+                    "relacion": request.form.get("cand_relacion")
+                },
+                "razon_recomendacion": request.form.get("razon"),
+                "centro_conocido": request.form.get("centro_conocido"),
+                "comentarios": request.form.get("comentarios")
+            }
+        else:
+            return jsonify({"error": "Origen no válido"}), 400
 
         # Construir el documento completo
         documento = {
@@ -52,6 +83,8 @@ def subir_cv():
             "texto_completo": texto_pdf,
             "embedding": embedding,
             "campos": campos_extraidos,
+            "origen": origen,
+            "datos_formulario": datos_formulario,  # Datos del formulario de contacto
             **secciones  # acerca_de, educacion, experiencia, etc.
         }
 

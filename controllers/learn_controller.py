@@ -19,6 +19,8 @@ def registrar_busqueda():
         mejor_score = datos.get("mejor_score")
         id_mejor_candidato = datos.get("id_mejor_candidato")
         estado = datos.get("estado")  # "exito" o "fallo"
+        posicion_ranking = datos.get("posicion_ranking", 0)
+        modelo_version = datos.get("modelo_version", "desconocida")
 
         if not consulta or estado not in ["exito", "fallo"]:
             return jsonify({"error": "Datos insuficientes o inválidos"}), 400
@@ -30,6 +32,8 @@ def registrar_busqueda():
             "mejor_score": mejor_score,
             "id_mejor_candidato": id_mejor_candidato,
             "estado": estado,
+            "posicion_ranking": posicion_ranking,
+            "modelo_version": modelo_version,
             "timestamp": datetime.utcnow().isoformat()
         }
 

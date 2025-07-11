@@ -8,6 +8,8 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from dotenv import load_dotenv
 from functools import lru_cache
 import threading
+from flask_cors import CORS
+
 
 # Configurar logging
 logging.basicConfig(
@@ -54,6 +56,8 @@ def initialize_models():
 def create_app():
     """Factory function para crear la aplicación Flask"""
     app = Flask(__name__)
+    CORS(app)
+
     
     # Configuración de la aplicación
     app.config['MAX_CONTENT_LENGTH'] = 20 * 1024 * 1024  # 20 MB
